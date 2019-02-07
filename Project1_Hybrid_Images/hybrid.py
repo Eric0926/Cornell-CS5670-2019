@@ -22,9 +22,31 @@ def cross_correlation_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+
+    k_width, k_height = kernel.shape
+    pad_width = (k_width - 1) / 2
+    pad_height = (k_height - 1) / 2
+    output = np.zeros(img.shape)
+    if img.ndim == 2:
+        i_width, i_height = img.shape
+        img_copy = np.pad(img, [(pad_width, pad_width), (pad_height, pad_height)], 'constant', constant_values=((0,0), (0,0)))
+
+        for i in range(i_width):
+            for j in range(i_height):
+                pixel_view = img_copy[i:i+k_width, j:j+k_height]
+                output[i,j] = np.sum(pixel_view * kernel)
+    else:
+        i_width, i_height, channels = img.shape
+        for channel in range(channels):
+            img_channel = img[:, :, channel]
+            img_copy = np.pad(img_channel, [(pad_width, pad_width), (pad_height, pad_height)], 'constant', constant_values=((0,0), (0,0)))
+
+            for i in range(i_width):
+                for j in range(i_height):
+                    pixel_view = img_copy[i:i+k_width, j:j+k_height]
+                    output[i, j, channel] = np.sum(pixel_view * kernel)
+    return output
+
 
 def convolve_2d(img, kernel):
     '''Use cross_correlation_2d() to carry out a 2D convolution.
@@ -39,9 +61,8 @@ def convolve_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+    flipped = np.flip(kernel, (0, 1))
+    return cross_correlation_2d(img, flipped)
 
 def gaussian_blur_kernel_2d(sigma, height, width):
     '''Return a Gaussian blur kernel of the given dimensions and with the given
@@ -58,9 +79,18 @@ def gaussian_blur_kernel_2d(sigma, height, width):
         Return a kernel of dimensions height x width such that convolving it
         with an image results in a Gaussian-blurred image.
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+
+    output = np.zeros((height, width))
+    center_x = int(height / 2)
+    center_y = int(width / 2)
+    constant = 1. / (2. * np.pi * (sigma ** 2))
+    exponent_denominator = 2. * (sigma ** 2)
+    for x in range(height):
+        for y in range(width):
+            exponent_numerator = ((x - center_x) ** 2) + ((y - center_y) ** 2)
+            exponent = (-1.) * exponent_numerator / exponent_denominator
+            output[x, y] = constant * np.power(np.e, exponent)
+    return output / np.sum(output)
 
 def low_pass(img, sigma, size):
     '''Filter the image as if its filtered with a low pass filter of the given
@@ -71,9 +101,8 @@ def low_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+    kernel = gaussian_blur_kernel_2d(sigma, size, size)
+    return convolve_2d(img, kernel)
 
 def high_pass(img, sigma, size):
     '''Filter the image as if its filtered with a high pass filter of the given
@@ -84,9 +113,9 @@ def high_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
-    # TODO-BLOCK-BEGIN
-    raise Exception("TODO in hybrid.py not implemented")
-    # TODO-BLOCK-END
+    kernel = gaussian_blur_kernel_2d(sigma, size, size)
+    convolved = convolve_2d(img, kernel)
+    return img - convolved
 
 def create_hybrid_image(img1, img2, sigma1, size1, high_low1, sigma2, size2,
         high_low2, mixin_ratio):
