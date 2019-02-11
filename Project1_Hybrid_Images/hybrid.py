@@ -23,27 +23,42 @@ def cross_correlation_2d(img, kernel):
         height and the number of color channels)
     '''
 
+    # get dimensions of kernel
     k_width, k_height = kernel.shape
+    # calculate the amount of zeros to pad the image with
     pad_width = (k_width - 1) / 2
     pad_height = (k_height - 1) / 2
+    # create a new zero filled array with the same dimensions as the image
     output = np.zeros(img.shape)
     if img.ndim == 2:
+        # two dimensional image - grayscale - get the dimensions
         i_width, i_height = img.shape
+        # pad the image with zeros, saving output to a new copy
         img_copy = np.pad(img, [(pad_width, pad_width), (pad_height, pad_height)], 'constant', constant_values=((0,0), (0,0)))
 
+        # loop through the original image, not the padded one
         for i in range(i_width):
             for j in range(i_height):
+                # get the range of pixels to multiply with from the padded image
                 pixel_view = img_copy[i:i+k_width, j:j+k_height]
+                # mult the two matrixes and sum the values, then save in the output array
                 output[i,j] = np.sum(pixel_view * kernel)
     else:
+        # three dims - rgb image - get the dimensions
         i_width, i_height, channels = img.shape
+        # loop through the channels
         for channel in range(channels):
+            # create a view of the current channel
             img_channel = img[:, :, channel]
+            # pad the current channel and copy it
             img_copy = np.pad(img_channel, [(pad_width, pad_width), (pad_height, pad_height)], 'constant', constant_values=((0,0), (0,0)))
 
+            # loop through the original channel, not the padded copy
             for i in range(i_width):
                 for j in range(i_height):
+                    # get the range of pixels to multiply with from the padded image
                     pixel_view = img_copy[i:i+k_width, j:j+k_height]
+                    # mult the two matrixes and sum the values, then save in the output array
                     output[i, j, channel] = np.sum(pixel_view * kernel)
     return output
 
@@ -61,7 +76,9 @@ def convolve_2d(img, kernel):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
+    # just flip the kernel on both axes
     flipped = np.flip(kernel, (0, 1))
+    # and return the cross correlation of the image with the flipped kernel
     return cross_correlation_2d(img, flipped)
 
 def gaussian_blur_kernel_2d(sigma, height, width):
@@ -80,16 +97,24 @@ def gaussian_blur_kernel_2d(sigma, height, width):
         with an image results in a Gaussian-blurred image.
     '''
 
+    # create a new zero filled array of the given dimensions
     output = np.zeros((height, width))
+    # calculate the coordinates of the central cell
     center_x = int(height / 2)
     center_y = int(width / 2)
+    # calculate the constant of the gaussian function
     constant = 1. / (2. * np.pi * (sigma ** 2))
+    # ditto for the denominator
     exponent_denominator = 2. * (sigma ** 2)
+    # for each cell in the output array...
     for x in range(height):
         for y in range(width):
+            # calculate the numerator using the relative location of the cell from the center
             exponent_numerator = ((x - center_x) ** 2) + ((y - center_y) ** 2)
             exponent = (-1.) * exponent_numerator / exponent_denominator
+            # save it in the output array
             output[x, y] = constant * np.power(np.e, exponent)
+    # normalize it
     return output / np.sum(output)
 
 def low_pass(img, sigma, size):
@@ -101,6 +126,7 @@ def low_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
+    # just get a gaussian kernel and convolve
     kernel = gaussian_blur_kernel_2d(sigma, size, size)
     return convolve_2d(img, kernel)
 
@@ -113,6 +139,7 @@ def high_pass(img, sigma, size):
         Return an image of the same dimensions as the input image (same width,
         height and the number of color channels)
     '''
+    # subtract the convolved from the original image to keep the high frequency values
     kernel = gaussian_blur_kernel_2d(sigma, size, size)
     convolved = convolve_2d(img, kernel)
     return img - convolved
