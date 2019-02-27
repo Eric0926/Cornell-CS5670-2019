@@ -123,53 +123,22 @@ class HarrisKeypointDetector(KeypointDetector):
         # raise Exception("TODO 1: in features.py not implemented")
         # TODO-BLOCK-END
 
-        # padded = np.pad(srcImage, [(2, 2), (2, 2)], 'reflect')
-        # for x in range(width):
-        #     for y in range(height):
-        #         # window is a 5x5 matrix with the current pixel in the center
-        #         window = padded[x:x + 5, y:y + 5]
-        #         blurred = ndimage.gaussian_filter(window, 0.5, mode='reflect')
-        #         x_derivative = ndimage.sobel(blurred, axis=0, mode='reflect')
-        #         y_derivative = ndimage.sobel(blurred, axis=1, mode='reflect')
+        dx = ndimage.sobel(srcImage, axis=0, mode='reflect')
+        dy = ndimage.sobel(srcImage, axis=1, mode='reflect')
+        i_xx = dx ** 2
+        i_xy = dx * dy
+        i_yy = dy ** 2
 
-        #         print(x_derivative)
-        #         # print(y_derivative)
-        #         img_xx = x_derivative * x_derivative
-        #         img_yy = y_derivative * y_derivative
-        #         img_xy = x_derivative * y_derivative
+        g_ixx = ndimage.gaussian_filter(i_xx, 0.5, mode='reflect')
+        g_iyy = ndimage.gaussian_filter(i_yy, 0.5, mode='reflect')
+        g_ixy = ndimage.gaussian_filter(i_xy, 0.5, mode='reflect')
 
-        #         w_p = 0
+        determinant = (g_ixx * g_iyy) - (g_ixy ** 2)
+        trace = g_ixx + g_iyy
 
-        #         # det_p = ((w_p * ixx_p) * (w_p * iyy_p)) - ((w_p * ixy_p) * (w_p * ixy_p))
-        #         # trace_p = (w_p * ixx_p) + (w_p * iyy_p)
-        #         det_p = trace_p = 1
-        #         harrisImage[x, y] = det_p - (0.1 * (trace_p ** 2))
+        harrisImage = determinant - (0.1 * (trace ** 2))
 
-        blurred = ndimage.gaussian_filter(srcImage, 0.5, mode='reflect')
-        x_derivative = ndimage.sobel(blurred, axis=0, mode='reflect')
-        y_derivative = ndimage.sobel(blurred, axis=1, mode='reflect')
-
-        img_xx = x_derivative * x_derivative
-        img_yy = y_derivative * y_derivative
-        img_xy = x_derivative * y_derivative
-
-        for x in range(width):
-            for y in range(height):
-                ixx_p = img_xx[x, y]
-                iyy_p = img_yy[x, y]
-                ixy_p = img_xy[x, y]
-                w_p = blurred[x, y]
-                # H = 
-                #       w_p * ixx_p     w_p * ixy_p
-                #       w_p * ixy_p     w_p * iyy_p
-                det_p = ((w_p * ixx_p) * (w_p * iyy_p)) - ((w_p * ixy_p) * (w_p * ixy_p))
-                trace_p = (w_p * ixx_p) + (w_p * iyy_p)
-                harrisImage[x, y] = det_p - (0.1 * (trace_p ** 2))
-        # orientationImage = cv2.phase(x_derivative, y_derivative)
-        
-        # harrisImage = cv2.cornerHarris(srcImage,7,3,0.5)
-
-        # harrisImage = srcImage
+        orientationImage = np.arctan2(dx, dy) * 180 / np.pi
 
         # Save the harris image as harris.png for the website assignment
         self.saveHarrisImage(harrisImage, srcImage)
