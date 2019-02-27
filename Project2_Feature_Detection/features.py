@@ -272,6 +272,9 @@ class SimpleFeatureDescriptor(FeatureDescriptor):
         grayImage = cv2.cvtColor(image, cv2.COLOR_BGR2GRAY)
         desc = np.zeros((len(keypoints), 5 * 5))
 
+        output = []
+        padded_image = np.pad(grayImage, 2, mode='constant', constant_values=0)
+
         for i, f in enumerate(keypoints):
             x, y = f.pt
             x, y = int(x), int(y)
@@ -280,9 +283,14 @@ class SimpleFeatureDescriptor(FeatureDescriptor):
             # sampled centered on the feature point. Store the descriptor
             # as a row-major vector. Treat pixels outside the image as zero.
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 4: in features.py not implemented")
+            # raise Exception("TODO 4: in features.py not implemented")
             # TODO-BLOCK-END
 
+            window = padded_image[y:y+5, x:x+5]
+            output.append(np.reshape(window,(25)))
+
+        desc = np.array(output)
+        
         return desc
 
 
