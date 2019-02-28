@@ -4,6 +4,7 @@ import cv2
 import numpy as np
 import scipy
 from scipy import ndimage, spatial
+from sklearn.preprocessing import minmax_scale
 
 import transformations
 
@@ -321,23 +322,65 @@ class MOPSFeatureDescriptor(FeatureDescriptor):
             # from each pixel in the 40x40 rotated window surrounding
             # the feature to the appropriate pixels in the 8x8 feature
             # descriptor image.
-            transMx = np.zeros((2, 3))
+            trans_mx = np.zeros((2, 3))
+            '''
+            f.size = 10
+            f.pt = (x, y)
+            f.angle = orientationImage[y, x]
+            f.response = harrisImage[y, x]
+            '''
+            x, y = f.pt
+            # print f.pt
+            # print f.angle
+            angle_degrees = f.angle
+            angle_radians = angle_degrees * np.pi / 180
+            angle = -angle_radians
+
+            rotation_mx = np.array([
+                [math.cos(angle), -math.sin(angle), 0],
+                [math.sin(angle), math.cos(angle), 0],
+                [0, 0, 1]
+            ])
+            scale_mx = np.array([
+                [0.2, 0, 0],
+                [0, 0.2, 0],
+                [0, 0, 1]
+            ])
+            translation_1_mx = np.array([
+                [1, 0, -x],
+                [0, 1, -y],
+                [0, 0, 1]
+            ])
+            # translation_2 is a 2x3 array so the dot product ends up as a 2x3
+            translation_2_mx = np.array([
+                [1, 0, windowSize / 2],
+                [0, 1, windowSize / 2]
+            ])
+            trans_mx = np.dot(translation_2_mx, np.dot(scale_mx, np.dot(rotation_mx, translation_1_mx)))
 
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 5: in features.py not implemented")
+            # raise Exception("TODO 5: in features.py not implemented")
             # TODO-BLOCK-END
 
             # Call the warp affine function to do the mapping
             # It expects a 2x3 matrix
-            destImage = cv2.warpAffine(grayImage, transMx,
-                (windowSize, windowSize), flags=cv2.INTER_LINEAR)
-
+            destImage = cv2.warpAffine(grayImage, trans_mx, (windowSize, windowSize), flags=cv2.INTER_LINEAR)
+            # descriptor = np.array(destImage).reshape(windowSize ** 2)
+            
             # TODO 6: Normalize the descriptor to have zero mean and unit
             # variance. If the variance is zero then set the descriptor
             # vector to zero. Lastly, write the vector to desc.
             # TODO-BLOCK-BEGIN
-            raise Exception("TODO 6: in features.py not implemented")
+            # raise Exception("TODO 6: in features.py not implemented")
             # TODO-BLOCK-END
+            # desc=-np.mean(i[:])
+            # X=X/np.std(i[:])
+            normalized_image = destImage - np.mean(destImage)
+            stddev = np.std(destImage)
+            if stddev < 1e-5:
+                desc[i] = np.zeros((windowSize ** 2))
+            else:
+                desc[i] = (normalized_image / stddev).reshape((windowSize **2))
 
         return desc
 
