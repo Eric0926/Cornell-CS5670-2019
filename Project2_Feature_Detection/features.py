@@ -508,7 +508,7 @@ class SSDFeatureMatcher(FeatureMatcher):
         # raise Exception("TODO 7: in features.py not implemented")
         # TODO-BLOCK-END
 
-        distances = spatial.distance.cdist(desc1, desc2, metric='euclidian')
+        distances = spatial.distance.cdist(desc1, desc2, metric='euclidean')
         for i, distance in enumerate(distances):
             j = numpy.argmin(distance)
             match = cv2.DMatch()
@@ -559,13 +559,13 @@ class RatioFeatureMatcher(FeatureMatcher):
         # raise Exception("TODO 8: in features.py not implemented")
         # TODO-BLOCK-END
 
-        distances = spatial.distance.cdist(desc1, desc2, metric='euclidian')
+        distances = spatial.distance.cdist(desc1, desc2, metric='euclidean')
         for i, distance in enumerate(distances):
             smallest_index, second_index = distance.argsort()[:2]
             match = cv2.DMatch()
             match.queryIdx = i
-            match.trainIdx = j
-            match.distance = float(distance[i])/distance[j]
+            match.trainIdx = smallest_index
+            match.distance = float(distance[smallest_index])/distance[second_index]
             matches.append(match)
 
         return matches
