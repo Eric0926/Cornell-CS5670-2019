@@ -556,8 +556,17 @@ class RatioFeatureMatcher(FeatureMatcher):
         # feature in the second image.
         # You don't need to threshold matches in this function
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 8: in features.py not implemented")
+        # raise Exception("TODO 8: in features.py not implemented")
         # TODO-BLOCK-END
+
+        distances = spatial.distance.cdist(desc1, desc2, metric='euclidian')
+        for i, distance in enumerate(distances):
+            smallest_index, second_index = distance.argsort()[:2]
+            match = cv2.DMatch()
+            match.queryIdx = i
+            match.trainIdx = j
+            match.distance = float(distance[i])/distance[j]
+            matches.append(match)
 
         return matches
 
