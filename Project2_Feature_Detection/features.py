@@ -505,8 +505,17 @@ class SSDFeatureMatcher(FeatureMatcher):
         # Note: multiple features from the first image may match the same
         # feature in the second image.
         # TODO-BLOCK-BEGIN
-        raise Exception("TODO 7: in features.py not implemented")
+        # raise Exception("TODO 7: in features.py not implemented")
         # TODO-BLOCK-END
+
+        distances = spatial.distance.cdist(desc1, desc2, metric='euclidian')
+        for i, distance in enumerate(distances):
+            j = numpy.argmin(distance)
+            match = cv2.DMatch()
+            match.queryIdx = i
+            match.trainIdx = j
+            match.distance = distance[j]
+            matches.append(match)
 
         return matches
 
