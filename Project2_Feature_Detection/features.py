@@ -510,7 +510,7 @@ class SSDFeatureMatcher(FeatureMatcher):
 
         distances = spatial.distance.cdist(desc1, desc2, metric='euclidean')
         for i, distance in enumerate(distances):
-            j = numpy.argmin(distance)
+            j = np.argmin(distance)
             match = cv2.DMatch()
             match.queryIdx = i
             match.trainIdx = j
