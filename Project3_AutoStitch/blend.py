@@ -29,7 +29,27 @@ def imageBoundingBox(img, M):
     """
     #TODO 8
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in blend.py not implemented")
+    corners = [
+        np.dot(M, (0, 0, 1)),
+        np.dot(M, (0, img.shape[1] - 1, 1)),
+        np.dot(M, (img.shape[0] - 1, 0, 1)),
+        np.dot(M, (img.shape[0] - 1, img.shape[1] - 1, 1))
+    ]
+
+    normalized = []
+    for corner in corners:
+      normalized.append((corner[0]/corner[2], corner[1]/corner[2], 1))
+    
+    x = []
+    y = []
+    for corner in normalized:
+      x.append(corner[0])
+      y.append(corner[1])
+
+    minX = min(x)
+    minY = min(y)
+    maxX = max(x)
+    maxY = max(y)
     #TODO-BLOCK-END
     return int(minX), int(minY), int(maxX), int(maxY)
 
