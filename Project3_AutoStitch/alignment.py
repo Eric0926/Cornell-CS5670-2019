@@ -79,9 +79,6 @@ def computeHomography(f1, f2, matches, A_out=None):
     H = np.eye(3)
 
     #BEGIN TODO 3
-    #Fill the homography H with the appropriate elements of the SVD
-    #TODO-BLOCK-BEGIN
-    # raise Exception("TODO in alignment.py not implemented")
     H = Vt[-1].reshape(3,3)
     #TODO-BLOCK-END
     #END TODO
@@ -123,7 +120,33 @@ def alignPair(f1, f2, matches, m, nRANSAC, RANSACthresh):
     #This function should also call get_inliers and, at the end,
     #least_squares_fit.
     #TODO-BLOCK-BEGIN
-    raise Exception("TODO in alignment.py not implemented")
+    num_matches = 0
+    if m == eTranslate:
+        num_matches = 1
+    if m == eHomography:
+        num_matches = 4
+
+    largest_estimate = []
+    for i in range(nRANSAC):
+        new_matches = random.sample(matches, num_matches)
+
+        homography = np.eye(3)
+        if m == eTranslate:
+            match = new_matches[0]
+            t_x = f2[match.trainIdx].pt[0] - f1[match.queryIdx].pt[0]
+            t_y = f2[match.trainIdx].pt[1] - f1[match.queryIdx].pt[1]
+
+            homography[0,2] = t_x
+            homography[1,2] = t_y
+        else:
+            homography = computeHomography(f1, f2, new_matches)
+
+        inliers = getInliers(f1, f2, matches, homography, RANSACthresh)
+        if len(inliers) > len(largest_estimate):
+            largest_estimate = inliers
+
+    M = leastSquaresFit(f1, f2, matches, m, largest_estimate)
+
     #TODO-BLOCK-END
     #END TODO
     return M
@@ -158,10 +181,18 @@ def getInliers(f1, f2, matches, M, RANSACthresh):
         #by M, is within RANSACthresh of its match in f2.
         #If so, append i to inliers
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+        # raise Exception("TODO in alignment.py not implemented")
+        first_image_index = matches[i].queryIdx
+        second_image_index = matches[i].trainIdx
+        column = np.array([f1[first_image_index].pt[0], f1[first_image_index].pt[1], 1])
+        column = column.T
+        transformed = np.dot(M, column)
+        normalized = np.array([transformed[0] / transformed[2], transformed[1] / transformed[2]])
+        compare = np.array(f2[second_image_index].pt)
+        if np.linalg.norm(normalized - compare) <= RANSACthresh:
+            inlier_indices.append(i)
         #TODO-BLOCK-END
         #END TODO
-
     return inlier_indices
 
 def leastSquaresFit(f1, f2, matches, m, inlier_indices):
