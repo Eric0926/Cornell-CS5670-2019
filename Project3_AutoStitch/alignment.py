@@ -234,7 +234,12 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
             #Use this loop to compute the average translation vector
             #over all inliers.
             #TODO-BLOCK-BEGIN
-            raise Exception("TODO in alignment.py not implemented")
+            first_image_index = matches[i].queryIdx
+            second_image_index = matches[i].trainIdx
+            first_image_pixel = f1[first_image_index].pt
+            second_image_pixel = f2[second_image_index].pt
+            u += second_image_pixel[0] - first_image_pixel[0]
+            v += second_image_pixel[1] - first_image_pixel[1]
             #TODO-BLOCK-END
             #END TODO
 
@@ -249,7 +254,10 @@ def leastSquaresFit(f1, f2, matches, m, inlier_indices):
         #Compute a homography M using all inliers.
         #This should call computeHomography.
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in alignment.py not implemented")
+        list_of_matches = []
+        for inlier in inlier_indices:
+            list_of_matches.append(matches[inlier])
+        M = computeHomography(f1, f2, list_of_matches)
         #TODO-BLOCK-END
         #END TODO
 
