@@ -1,6 +1,5 @@
 import math
 import sys
-
 import cv2
 import numpy as np
 
@@ -127,7 +126,12 @@ def getAccSize(ipv):
         # BEGIN TODO 9
         # add some code here to update minX, ..., maxY
         #TODO-BLOCK-BEGIN
-        raise Exception("TODO in blend.py not implemented")
+        box_minx, box_miny, box_maxx, box_maxy = imageBoundingBox(img, M)
+        minX = min(box_minx, minX)
+        minY = min(box_miny, minY)
+        maxX = max(box_maxx, maxX)
+        maxY = max(box_maxy, maxY)
+
         #TODO-BLOCK-END
         # END TODO
 
