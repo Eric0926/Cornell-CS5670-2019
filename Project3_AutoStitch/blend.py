@@ -1,6 +1,5 @@
 import math
 import sys
-
 import cv2
 import numpy as np
 
@@ -127,15 +126,11 @@ def getAccSize(ipv):
         # BEGIN TODO 9
         # add some code here to update minX, ..., maxY
         #TODO-BLOCK-BEGIN
-        i_minX, i_minY, i_maxX, i_maxY = imageBoundingBox(img, M)
-        if i_minX <  minX:
-            minX = i_minX
-        if i_minY <  minY:
-            minY = i_minY
-        if i_maxX >  maxX:
-            maxX = i_maxX
-        if i_maxY > maxY:
-            maxY = i_maxY
+        box_minx, box_miny, box_maxx, box_maxy = imageBoundingBox(img, M)
+        minX = min(box_minx, minX)
+        minY = min(box_miny, minY)
+        maxX = max(box_maxx, maxX)
+        maxY = max(box_maxy, maxY)
         #TODO-BLOCK-END
         # END TODO
 
