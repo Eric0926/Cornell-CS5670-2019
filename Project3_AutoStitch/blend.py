@@ -163,7 +163,6 @@ def getAccSize(ipv):
         minY = min(box_miny, minY)
         maxX = max(box_maxx, maxX)
         maxY = max(box_maxy, maxY)
-
         #TODO-BLOCK-END
         # END TODO
 
