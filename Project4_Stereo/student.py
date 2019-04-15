@@ -32,8 +32,15 @@ def compute_photometric_stereo_impl(lights, images):
         normals -- float32 height x width x 3 image with dimensions matching
                    the input images.
     """
+    G= np.empty([9,1])
+    for i,image in enumerate(images):
+        np.insert(G,lights[i] * image, axis=1)
+        
+    images = np.array([[[coord for coord in xk] for xk in xj] for xj in xi], ndmin=3)
+    images = np.array(images).reshape(3,9)
     g1=np.linalg.inv(np.matmul(np.transpose(lights),  lights))
-    g2= np.transpose(lights) * np.mat(images)
+    g2= np.transpose(lights) * images
+
     G = np.matmul(g1,g2)
     print(G.shape())
 
