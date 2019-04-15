@@ -32,10 +32,23 @@ def compute_photometric_stereo_impl(lights, images):
         normals -- float32 height x width x 3 image with dimensions matching
                    the input images.
     """
-    raise NotImplementedError()
+    #raise NotImplementedError()
+    print(lights)
 
-
-
+    #taking  array of images with corresponding light directions, and computing map of combined images
+    # two different ways, albedo way and normal way
+    # red is right direction (+x)
+    # green is left direction (+y)
+    # blue is normal pointing out of screen (+z)
+    #kd is norm of G(square root of sum)
+    # combining image and lighting arrays
+    #light x image array which gets you G and then decompose to albedo of normals
+    # inverse (L transpose * L) 
+    # multiply ^ by ( l transpose times images)
+    # that's G
+    # take np.linalg.norm(G) => albedos
+    # divide G by ^ to get normals
+    # 
 
 def project_impl(K, Rt, points):
     """
@@ -49,7 +62,7 @@ def project_impl(K, Rt, points):
     """
     raise NotImplementedError()
 
-
+    #k times rt times identity 
 
 def preprocess_ncc_impl(image, ncc_size):
     """
@@ -102,7 +115,6 @@ def preprocess_ncc_impl(image, ncc_size):
     """
     raise NotImplementedError()
 
-
 def compute_ncc_impl(image1, image2):
     """
     Compute normalized cross correlation between two images that already have
@@ -115,4 +127,6 @@ def compute_ncc_impl(image1, image2):
         ncc -- height x width normalized cross correlation between image1 and
                image2.
     """
-    raise NotImplementedError()
+
+    ncc = np.dot(image1,image2)
+    return ncc
