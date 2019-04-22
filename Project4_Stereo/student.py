@@ -32,23 +32,46 @@ def compute_photometric_stereo_impl(lights, images):
         normals -- float32 height x width x 3 image with dimensions matching
                    the input images.
     """
-    G= np.empty([9,1])
-    for i,image in enumerate(images):
-        np.insert(G,lights[i] * image, axis=1)
+    # G= np.empty([9,1])
+    # for i,image in enumerate(images):
+    #     np.insert(G,lights[i] * image, axis=1)
         
-    images = np.array([[[coord for coord in xk] for xk in xj] for xj in xi], ndmin=3)
-    images = np.array(images).reshape(3,9)
-    g1=np.linalg.inv(np.matmul(np.transpose(lights),  lights))
-    g2= np.transpose(lights) * images
+    # images = np.array([[[coord for coord in xk] for xk in xj] for xj in xi], ndmin=3)
+    # images = np.array(images).reshape(3,9)
+    # g1=np.linalg.inv(np.matmul(np.transpose(lights),  lights))
+    # g2= np.transpose(lights) * images
 
-    G = np.matmul(g1,g2)
-    print(G.shape())
+    # G = np.matmul(g1,g2)
+    # print(G.shape())
 
-    albedo = np.linalg.norm(G)
-    normals = G/albedo
+    # albedo = np.linalg.norm(G)
+    # normals = G/albedo
 
-    return albedo, normals
+    # return albedo, normals
 
+    base_image = images[0]
+    n = len(images)
+    image_shape = base_image.shape
+    h, w, c = image_shape
+
+    I = np.array(images).reshape(n, h * w * c)
+    l_inv = np.linalg.inv(np.dot(lights.T, lights))
+
+    l_t_l = np.dot(l_inv, lights.T)
+
+    G = np.dot(l_t_l, I)
+
+    G_channels = np.reshape(G.T,(h, w, c, 3))
+    albedos = np.linalg.norm(G_channels, axis = 3)
+
+    G_grey = np.mean(G_channels, axis=2)
+    norm_of_albedos = np.linalg.norm(G_grey, axis = 2)
+
+    threshold = 1e-7
+    normals = G_grey/np.maximum(threshold, norm_of_albedos[:,:,np.newaxis])
+    normals[norm_of_albedos < threshold] = 0
+    
+    return albedos, normals
 
     #taking array of images with corresponding light directions, and computing map of combined images
     # two different ways, albedo way and normal way
@@ -75,7 +98,7 @@ def project_impl(K, Rt, points):
     Output:
         projections -- height x width x 2 array of 2D projections
     """
-    raise NotImplementedError()
+    #raise NotImplementedError()
 
     #k times rt times identity 
 
@@ -118,7 +141,7 @@ def preprocess_ncc_impl(image, ncc_size):
     +------+------+  +------+------+  v
     width ------->
 
-    v = [ x111, x121, x211, x112, x112, x122, x212, x222 ]
+    v = [ x111, x121, x211, x221, x112, x122, x212, x222 ]
 
     see order argument in np.reshape
 
@@ -128,7 +151,7 @@ def preprocess_ncc_impl(image, ncc_size):
     Output:
         normalized -- heigth x width x (channels * ncc_size**2) array
     """
-    raise NotImplementedError()
+    #raise NotImplementedError()
 
 def compute_ncc_impl(image1, image2):
     """
