@@ -101,6 +101,14 @@ def project_impl(K, Rt, points):
     #raise NotImplementedError()
 
     #k times rt times identity 
+    P = np.dot(K, Rt)
+    h, w, _ = np.shape(points)
+    ones = np.ones((h, w, 1))
+    points_homography = np.concatenate((points, ones), axis=2)
+
+    projections = np.tensordot(points_homography, P.T, axes = 1)
+    normalized = projections / (projections[:,:,2])[:,:,np.newaxis]
+    return normalized[:,:,0:2]
 
 def preprocess_ncc_impl(image, ncc_size):
     """
@@ -153,17 +161,39 @@ def preprocess_ncc_impl(image, ncc_size):
     """
     #raise NotImplementedError()
 
+    h, w, c = image.shape
+    normalized_shape = (h, w, c * ncc_size**2)
+    normalized = np.zeros(normalized_shape, dtype = np.float32)
+
+    mid = ncc_size / 2
+
+    for i in range(mid, h - mid):
+        for j in range(mid, w - mid):
+            all_windows = []
+            for k in range(c):
+                window = image[i - mid : i + mid + 1, j - mid : j + mid + 1, k]
+                window = (window - np.mean(window)).flatten()
+                all_windows.append(window.T)
+            flattened = np.array(all_windows).flatten(order='C')
+            norm = np.linalg.norm(flattened)
+            if norm < 1e-6:
+                flattened.fill(0)
+            else:
+                flattened = flattened / norm
+            normalized[i,j] = flattened
+    return normalized
+
 def compute_ncc_impl(image1, image2):
     """
     Compute normalized cross correlation between two images that already have
     normalized vectors computed for each pixel with preprocess_ncc.
 
     Input:
-        image1 -- height x width x (channels * ncc_size**2) array
+        image1 -- height x width x (c * ncc_size**2) array
         image2 -- height x width x (channels * ncc_size**2) array
     Output:
         ncc -- height x width normalized cross correlation between image1 and
                image2.
     """
-    ncc = np.dot(image1,image2)
+    ncc = np.sum(np.multiply(image1, image2), axis = 2)
     return ncc
